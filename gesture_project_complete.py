@@ -2,7 +2,8 @@ import tensorflow as tf
 import cv2
 import numpy as np
 from collections import namedtuple
-# TODO: import libraries
+from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
+from cflib.crtp import init_drivers
 
 # Constants
 HEIGHT_LIMIT = 2.0 # maximum height of the drone
@@ -45,7 +46,7 @@ left_hip = (0,0)
 
 # Initialize the drivers
 if CRAZYFLIE_ENABLED:
-    pass
+    init_drivers()
 
 
 # Initialize the AI Model
@@ -81,7 +82,12 @@ dim_y , dim_x, _ = frame.shape
 # Connect to Crazyflie
 if CRAZYFLIE_ENABLED:
     # Fill in here
-    pass
+    scf = SyncCrazyflie(URI)
+    scf.open_link()
+    commander = scf.cf.high_level_commander
+    print("Connected to Crazyflie")
+    print("Starting up the motors")
+    commander.takeoff(0.5,2.0)
 
 try:
     while success:
@@ -134,6 +140,7 @@ try:
         
         if CRAZYFLIE_ENABLED:
             # Fill in here
+            commander.go_to(0,0,desired_height,0)
             pass
 
 
@@ -167,6 +174,8 @@ except Exception as e:
 finally:
     if CRAZYFLIE_ENABLED:
         # Fill in here
-        pass
+        print("Landing the drone")
+        commander.land(0.0,2.0)
+        scf.close_link()
 
 video_capture.release()
